@@ -1,14 +1,8 @@
-#include <iostream>
-#include <string>
-#include <fstream>
 
-#include <utility>
-#include <functional>
-
-#include "../include/utils/shell.h"
+#include "../include/zeel.h"
 
 using namespace ZS::Shell;
-#define INTERACTIVE 0 // Interactive Console Source Code Input
+#define ZLEXER_INTERACTIVE 0 // Interactive Console Source Code Input
 
 void lexToFile(std::vector<ZS::Token *> &tokens, std::string fileName = LEXER_LOG_FILENAME)
 {
@@ -17,12 +11,13 @@ void lexToFile(std::vector<ZS::Token *> &tokens, std::string fileName = LEXER_LO
     if (lexFile.is_open())
     {
         lexFile << tokens;
+        // lexFile.flush(); // new added
         lexFile.close();
     }
     else
     {
         cerr << "Error: Could not open file " << fileName << endl;
-        exit(1);
+        exit(EXIT_FAILURE);
     };
 };
 
@@ -34,7 +29,7 @@ void lex(std::string &sourceCode, std::string filename)
     tokens = std::get<0>(lexer);
     errors = std::get<1>(lexer);
 
-#if INTERACTIVE
+#if ZLEXER_INTERACTIVE
     if (!errors.empty())
         std::cout << errors;
     else
@@ -67,11 +62,11 @@ int main(int argc, char *argv[])
             lex(code, filename);
         }
 #else
-
-        // Open the input file
-        // std::string filename = TRY_SAMPLE;
+#ifdef ZLEXER_SAMPLE
         std::string filename = "../test/main.zs";
-
+#else
+        std::string filename = "../test/string.zs";
+#endif
         ifstream file(filename);
         if (!file.is_open())
         {

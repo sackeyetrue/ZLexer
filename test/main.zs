@@ -1,6 +1,6 @@
 recipe isNumber(noodle string)
     frozen noodle stringSize = len(string)
-    frozen noodle numberChrs = [ "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" ]
+    frozen noodle numberChrs = [ "0" , "nnn\t\z\"""" ]
     noodle chrFound = false 
     noodle chrIndex = 23
     noodle currentChr

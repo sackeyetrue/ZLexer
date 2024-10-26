@@ -1,11 +1,6 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-#include "../backend/token.h"
-#include "../backend/lexer.h"
-#include "../backend/error.h"
-#include "../utils/utils.h"
-#include "../utils/shell.h"
 
 #include <iostream>
 #include <string>
@@ -30,7 +25,7 @@ namespace ZS::Shell
         };
     };
 
-    void help(char *input = "")
+    void help(std::string input = "")
     {
         std::cout << "Type help " << input << std::endl;
     };

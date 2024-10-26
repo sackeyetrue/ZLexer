@@ -4,8 +4,8 @@
 #include "error.h"
 #include "token.h"
 
-#define MAX_IDENTIFIER_LENGHT 40          // Maximun Name Length of Indetifiers.
-#define LEXER_LOG_FILENAME "LexerLog.txt" // Name Of file to Write Generated Tokens to.
+#define MAX_IDENTIFIER_LENGHT 40      // Maximun Name Length of Indetifiers.
+#define LEXER_LOG_FILENAME "LLog.txt" // Name Of file to Write Generated Tokens to.
 
 //  TODO: fix string not containing symbols and numbers
 //  TODO: fix invalid base numbers
@@ -255,11 +255,6 @@ namespace ZS
                     int end_pos = std::get<1>(detail);
 
                     token = new Comment(comment);
-                }
-                else if (cchar == '0')
-                { // Base Numbers
-
-                    token = getBase(line, errors);
                 }
                 else if (cchar == '/')
                 {
@@ -511,6 +506,10 @@ namespace ZS
                         {
                             if (ZS::inContainer(keywords, word))
                             {
+                                /////////////////////////////
+                                //    ↓ Keyword Token ↓    //
+                                /////////////////////////////
+
                                 token = new Keyword(word);
                             }
                             else
@@ -602,134 +601,68 @@ namespace ZS
         /**
          *  @brief Output the Lexer analyzed Tokens to file
          *  @param line  Line Number Of Token.
-         *  @returns Number Base Token.
-         */
-        Token *getBase(int &line, std::vector<ZS::Error> &errors)
-        {
-            // TODO: Handle invalid base
-            // TODO: Else Base Error
-            try
-            {
-                int start_pos = colon; // Token Start Position
-                std::string baseNumber = "";
-                int baseCount = 0;
-                bool isBinary = false; // Binary Number Base.
-                bool isOctal = false;  // Octal Number Base.
-                bool isHex = false;    // Hexidecimal Number Base.
-
-                while ((basedigits.find(cchar) != std::string::npos) && (index < text.length()))
-                {
-                    if (cchar == 'o')
-                    {
-                        isOctal = true;
-                        baseCount++;
-                    }
-                    else if (cchar == 'b')
-                    {
-                        isBinary = true;
-                        baseCount++;
-                    }
-                    else if (cchar == 'x')
-                    {
-                        isHex = true;
-                        baseCount++;
-                    }
-                    baseNumber += cchar;
-                    colon++;
-                    advance();
-                };
-
-                int end_pos = colon;
-
-                if (isHex)
-                {
-                    if (baseCount == 1)
-                    {
-                        return new Hexidecimal(baseNumber);
-                    }
-                    else
-                    {
-
-                        ZS::Token *token = new Invalid(baseNumber);
-                        throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
-                        return token;
-                    }
-                }
-                else if (isOctal)
-                {
-                    if (baseCount == 1)
-                    {
-                        return new Octal(baseNumber);
-                    }
-                    else
-                    {
-
-                        ZS::Token *token = new Invalid(baseNumber);
-                        throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
-                        return token;
-                    }
-                }
-                else if (isBinary)
-                {
-                    if (baseCount == 1)
-                    {
-                        return new Binary(baseNumber);
-                    }
-                    else
-                    {
-
-                        ZS::Token *token = new Invalid(baseNumber);
-                        throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
-                        return token;
-                    }
-                }
-                else
-                {
-                    ZS::Token *token = new Invalid(baseNumber);
-                    throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
-                    return token;
-                }
-            }
-            catch (ZS::Error error)
-            {
-                ////// HANDEL ERROR HERE /////
-                errors.push_back(error);
-            };
-        };
-
-        /**
-         *  @brief Output the Lexer analyzed Tokens to file
-         *  @param line  Line Number Of Token.
          *  @returns Number Token of Integer | Float.
          */
         Token *getNum(int &line, std::vector<ZS::Error> &errors)
         {
-            // TODO: Handle invalid number
-            // TODO: invalid Floating Point Numbers
+            // TODO: Handle place of i in Imaginary Numbers
+            // TODO: Handle place of e in Exponential Numbers
+            // TODO: Handle place of i in Imaginary Numbers
+            // TODO: Fix Floating Point Numbers (23.0)
+
+            /*
+             -----------------------------------
+               /-------------------------------\
+               |Number  | Exponent |  Imaginary|
+               |-------------------------------|
+               |Integer |    +     |     +     |
+               |Float   |    +     |     +     |
+               |Hex     |          |           |
+               |Binary  |          |           |
+               |Octal   |          |           |
+               \-------------------------------/
+            -------------------------------------
+            */
+
+            ZS::Token *token;
             try
             {
-                int start_pos = colon; // Token Start Position
-                std::string number = "";
-                int dotCount = 0;
+                int start_pos = colon;   // Token Start Position
+                std::string number = ""; // Number to return
+                int dotCount = 0;        // Number of decimal points.
+                int baseCount = 0;       // Number of bases being True.
+                int imaginaryCount = 0;  // To check if both Exponent and
+                int exponentCount = 0;
 
                 bool isFloat = false;     // Floating Point Number.
                 bool isExponent = false;  // Exponent Number.
                 bool isImaginary = false; // Imaginary Number.
+                bool isBinary = false;    // Binary Number Base.
+                bool isOctal = false;     // Octal Number Base.
+                bool isHex = false;       // Hexidecimal Number Base.
 
-                while ((digits.find(cchar) != std::string::npos || cchar == '.') && (index < text.length()))
+                while ((digitsextended.find(cchar) != std::string::npos) && (index < text.length()))
                 {
-                    if (cchar == '.')
+                    switch (cchar)
                     {
+                    case '.':
                         isFloat = true;
                         dotCount++;
-                    }
-                    if (cchar == 'i')
-                    {
+                    case 'i':
                         isImaginary = true;
-                    }
-                    if (cchar == 'e')
-                    {
+                        imaginaryCount++;
+                    case 'o':
+                        isOctal = true;
+                        baseCount++;
+                    case 'b':
+                        isBinary = true;
+                        baseCount++;
+                    case 'e':
                         isExponent = true;
+                        exponentCount++;
+                    case 'x':
+                        isHex = true;
+                        baseCount++;
                     }
                     number += cchar;
                     colon++;
@@ -740,20 +673,111 @@ namespace ZS
 
                 if (isFloat)
                 {
-                    if (dotCount == 1)
+                    if (isExponent)
                     {
-                        return new Float(number);
+
+                        if (exponentCount == 1)
+                        {
+                            token = new Exponent(number);
+                        }
+                        else
+                        {
+                            token = new Invalid(number);
+                            throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                        }
+                    }
+                    else if (isImaginary)
+                    {
+
+                        if (imaginaryCount == 1)
+                        {
+                            token = new Imaginary(number);
+                        }
+                        else
+                        {
+                            token = new Invalid(number);
+                            throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                        }
                     }
                     else
                     {
-                        ZS::Token *token = new Invalid(number);
+                        if (dotCount == 1)
+                        {
+                            token = new Float(number);
+                        }
+                        else
+                        {
+                            token = new Invalid(number);
+                            throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                        }
+                    }
+                }
+                else if (isBinary)
+                {
+                    if (baseCount == 1 && exponentCount == 0 && imaginaryCount == 0)
+                    {
+                        token = new Binary(number);
+                    }
+                    else
+                    {
+                        token = new Invalid(number);
                         throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
-                        return token;
+                    }
+                }
+                else if (isHex)
+                {
+                    if (baseCount == 1 && exponentCount == 0 && imaginaryCount == 0)
+                    {
+                        token = new Hexidecimal(number);
+                    }
+                    else
+                    {
+                        token = new Invalid(number);
+                        throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                    }
+                }
+                else if (isOctal)
+                {
+                    if (baseCount == 1 && exponentCount == 0 && imaginaryCount == 0)
+                    {
+                        token = new Octal(number);
+                    }
+                    else
+                    {
+                        token = new Invalid(number);
+                        throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
                     }
                 }
                 else
                 {
-                    return new Integer(number);
+                    if (isExponent)
+                    {
+                        if (exponentCount == 1)
+                        {
+                            token = new Exponent(number);
+                        }
+                        else
+                        {
+                            token = new Invalid(number);
+                            throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                        }
+                    }
+                    else if (isImaginary)
+                    {
+                        if (imaginaryCount == 1)
+                        {
+                            token = new Imaginary(number);
+                        }
+                        else
+                        {
+                            token = new Invalid(number);
+                            throw ZS::IllegalCharError(token, filename, line, start_pos, end_pos);
+                        }
+                    }
+                    else
+                    {
+                        token = new Integer(number);
+                    }
                 }
             }
             catch (ZS::Error error)
@@ -761,6 +785,8 @@ namespace ZS
                 ////// HANDEL ERROR HERE /////
                 errors.push_back(error);
             };
+
+            return token;
         }
 
         /**
@@ -786,27 +812,29 @@ namespace ZS
          */
         std::pair<std::string, int> getString()
         {
-            int end_pos = colon;
-
+            int end_pos;
             std::string string = "";
-            while (strings.find(cchar) != std::string::npos || cchar == '"' || cchar == '\\' && index < text.length())
+
+            while (strings.find(cchar) != std::string::npos || cchar == '\\' && index < text.length())
             {
                 if (cchar == '"')
                 { // end of String
                     advance();
                     colon++;
+                    end_pos = colon;
                     return {string, end_pos};
                 }
-                // else if (cchar == '\\')
-                // {
-                //     colon++;
-                //     string += cchar;
-                // }
+                else if (cchar == '\\')
+                { // string escape "
+                    colon++;
+                    string += cchar;
+                    advance();
+                }
                 string += cchar;
                 colon++;
-                end_pos++;
                 advance();
             };
+            end_pos = colon;
             return {"Invalid", end_pos};
         };
 

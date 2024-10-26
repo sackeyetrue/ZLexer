@@ -1,13 +1,19 @@
 #ifndef ZS_H
 #define ZS_H
 
-#define DEV_MODE true // Run ZS in Development Mode
+#include "./backend/token.h"
+#include "./backend/lexer.h"
+#include "./backend/error.h"
+#include "./utils/utils.h"
+#include "./utils/shell.h"
 
-#define DEV_MESSAGES false // To log Dev Messages
+#ifdef LEXER_H
+#endif
 
-#define TRY_SAMPLE "../test/main.zs" // ZS Main Sample
-
-#define VERBOSE 0
+#define ZLEXER_DEV_MODE                 // Run ZS in Development Mode
+#define ZLEXER_DEV_MESSAGES             // To log Dev Messages
+#define ZLEXER_SAMPLE "../test/main.zs" // ZS Main Sample
+#define ZLEXER_VERBOSE                  // Verbose Messages and Logs
 
 #include <iostream>
 #include <string>

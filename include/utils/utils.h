@@ -175,8 +175,8 @@ namespace ZS
         for (int i = 0; i < container.size(); i++)
 
             if (container[i] == value)
-
-                return true;
+                break;
+        return true;
     };
 
     /**
@@ -193,8 +193,8 @@ namespace ZS
         for (int i = 0; i < size; i++)
 
             if (container[i] == value)
-
-                return true;
+                break;
+        return true;
     };
 
     /**
@@ -224,6 +224,7 @@ namespace ZS
     {
         int index = 0;
         std::string resultarrow = "";
+        std::string stringarrow = "";
         try
         {
             std::string line = text;
@@ -252,13 +253,13 @@ namespace ZS
                 }
             };
 
-            std::string stringarrow = line + "\n" + resultarrow + "\n";
-            return stringarrow;
+            stringarrow += line + "\n" + resultarrow + "\n";
         }
         catch (const char *exe)
         {
             std::cout << exe << std::endl;
         }
+        return stringarrow;
     };
 
     /**
@@ -272,6 +273,7 @@ namespace ZS
 
         fstream sourceFile;
         sourceFile.open(filename);
+        std::string linetext;
         if (sourceFile.is_open())
         {
             int start = 0;
@@ -280,8 +282,8 @@ namespace ZS
             {
                 if (start = lineno)
                 {
-                    return linetext;
                     break;
+                    // return linetext;
                 }
             }
             sourceFile.close();
@@ -290,7 +292,9 @@ namespace ZS
         {
             std::cerr << "Couldn't Open '" << filename << "'" << std::endl;
         }
+        return linetext;
     };
+
 };
 
 // struct AlocaMetrics
